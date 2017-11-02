@@ -18,7 +18,7 @@ function EventTarget(target) {
     };
     target.off = function (event) {
         Object.keys(target.callbacks).forEach(function (subscribedEvent) {
-            if (subscribedEvent.indexOf(event) === 0) {
+            if (subscribedEvent && subscribedEvent.split('.')[0] === event) {
                 target.callbacks[subscribedEvent] = [];
             }
         });
