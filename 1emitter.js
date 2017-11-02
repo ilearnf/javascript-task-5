@@ -7,7 +7,9 @@
 getEmitter.isStar = false;
 module.exports = getEmitter;
 
-function EventTarget(target) {
+function EventTarget(context) {
+    var target = this;
+    target.target = context;
     target.callbacks = target.callbacks || {};
     target.on = function (event, fn, currentIdx) {
         target.callbacks[event] = target.callbacks[event] || [];
@@ -18,7 +20,7 @@ function EventTarget(target) {
     };
     target.off = function (event) {
         Object.keys(target.callbacks).forEach(function (subscribedEvent) {
-            if (subscribedEvent.split(".")[0] === event) {
+            if (subscribedEvent.indexOf(event) === 0) {
                 target.callbacks[subscribedEvent] = [];
             }
         });
@@ -26,7 +28,7 @@ function EventTarget(target) {
     target.dispatch = function (event) {
         // target.callbacks[event].reverse();
         target.callbacks[event].forEach(function (fn) {
-            fn.apply(target, arguments);
+            fn.apply(target.target, arguments);
         });
         // target.callbacks[event].reverse();
     };
@@ -66,11 +68,16 @@ function getEmitter() {
          */
         on: function (event, context, handler) {
             console.info(event, context, handler);
-            context = new EventTarget(context);
-            context.on(event, handler, this.currentHandlerIdx);
+            var target = new EventTarget(context);
+            target.on(event, handler, this.currentHandlerIdx);
             this.observers[event] = this.observers[event] || [];
-            if (this.observers[event].indexOf(context) === -1) {
-                this.observers[event].push(context);
+            var existingTargetIdx = this.observers[event].findIndex(function (observer) {
+                return observer.target === context;
+            });
+            if (existingTargetIdx === -1) {
+                this.observers[event].push(target);
+            } else {
+                this.observers[event][existingTargetIdx].on(event, handler, this.currentHandlerIdx);
             }
             this.currentHandlerIdx += 1;
 
@@ -85,15 +92,16 @@ function getEmitter() {
          */
         off: function (event, context) {
             console.info(event, context);
-            context = new EventTarget(context);
             var self = this;
             Object.keys(this.observers).forEach(function (subscribedEvent) {
-                var targetIdx = self.observers[subscribedEvent].indexOf(context);
-                if (subscribedEvent && subscribedEvent.split(".")[0] === event) {
+                var targetIdx = self.observers[subscribedEvent].findIndex(function (observer) {
+                    return observer.target === context;
+                });
+                self.observers[subscribedEvent][targetIdx].off();
+                if (subscribedEvent.indexOf(event) === 0 && subscribedEvent) {
                     self.observers[subscribedEvent].splice(targetIdx, 1);
                 }
             });
-            context.off(event);
 
             return this;
         },
@@ -117,7 +125,7 @@ function getEmitter() {
                     // target.dispatch(eventWithoutNamespace);
                     target.callbacks[eventWithoutNamespace].forEach(function (targetHandler) {
                         var handlerWithTarget = Object.assign({
-                            target: target
+                            target: target.target
                         }, targetHandler);
                         allHandlers.push(handlerWithTarget);
                     });
