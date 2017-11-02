@@ -71,13 +71,13 @@ function getEmitter() {
             var target = new EventTarget(context);
             target.on(event, handler, this.currentHandlerIdx);
             this.observers[event] = this.observers[event] || [];
-            var existingTargetIdx = this.observers[event].findIndex(function (target) {
-                return target.target === context;
+            var existingTargetIdx = this.observers[event].findIndex(function (observer) {
+                return observer.target === context;
             });
             if (existingTargetIdx === -1) {
                 this.observers[event].push(target);
             } else {
-                his.observers[event][existingTargetIdx].on(event, handler, this.currentHandlerIdx);
+                this.observers[event][existingTargetIdx].on(event, handler, this.currentHandlerIdx);
             }
             this.currentHandlerIdx += 1;
 
@@ -92,9 +92,9 @@ function getEmitter() {
          */
         off: function (event, context) {
             console.info(event, context);
-            var handlersToOff = this.observers[event].filter(function (observer) {
-                return observer.target === context;
-            });
+            //var handlersToOff = this.observers[event].filter(function (observer) {
+                //return observer.target === context;
+                //});
             var self = this;
             Object.keys(this.observers).forEach(function (subscribedEvent) {
                 var targetIdx = self.observers[subscribedEvent].findIndex(function (observer) {
