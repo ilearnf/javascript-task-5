@@ -92,9 +92,6 @@ function getEmitter() {
          */
         off: function (event, context) {
             console.info(event, context);
-            //var handlersToOff = this.observers[event].filter(function (observer) {
-                //return observer.target === context;
-                //});
             var self = this;
             Object.keys(this.observers).forEach(function (subscribedEvent) {
                 var targetIdx = self.observers[subscribedEvent].findIndex(function (observer) {
