@@ -56,6 +56,7 @@ function getAllNamespacedEvents(event) {
 function getEmitter() {
     return {
         observers: {},
+        currentHandlerIdx: 0,
 
         /**
          * Подписаться на событие
@@ -72,6 +73,7 @@ function getEmitter() {
             if (this.observers[event].indexOf(context) === -1) {
                 this.observers[event].push(context);
             }
+            this.currentHandlerIdx += 1;
 
             return this;
         },
@@ -88,14 +90,9 @@ function getEmitter() {
             var self = this;
             Object.keys(this.observers).forEach(function (subscribedEvent) {
                 var targetIdx = self.observers[subscribedEvent].indexOf(context);
-                var subscribedStartsWithEvent =
-                    subscribedEvent.indexOf(event) === 0;
-                var eventIsAParentNamespace =
-                    subscribedStartsWithEvent &&
-                    subscribedEvent.length >= event.length &&
-                    subscribedEvent[event.length] === '.';
-                var eventsAreEqual = subscribedEvent === event;
-                if (eventsAreEqual || eventIsAParentNamespace) {
+                if (subscribedEvent.indexOf(event) === 0 &&
+                    (subscribedEvent.length === event.length ||
+                        subscribedEvent[event.length] === '.')) {
                     self.observers[subscribedEvent].splice(targetIdx, 1);
                 }
             });
