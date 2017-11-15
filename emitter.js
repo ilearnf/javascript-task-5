@@ -128,9 +128,6 @@ function getEmitter() {
                         allHandlers.push(handlerWithTarget);
                     });
                 });
-                allHandlers.sort(function (a, b) {
-                    return a.idx - b.idx;
-                });
                 allHandlers.forEach(function (handler) {
                     handler.fn.apply(handler.target, arguments);
                 });
